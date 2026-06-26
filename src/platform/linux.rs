@@ -874,7 +874,11 @@ pub fn start_os_service() {
             // for fixing https://github.com/rustdesk/rustdesk/issues/3129 to avoid too much dbus calling,
             sleep_millis(500);
         } else {
-            sleep_millis(super::SERVICE_INTERVAL);
+            // Use the larger OS_SERVICE_POLL_INTERVAL here to reduce the rate of
+            // ps/pgrep/sh spawns from desktop.refresh() and should_start_server()
+            // each iteration. This only slows session-change detection (second-level),
+            // not process-exit waits, which still use SERVICE_INTERVAL.
+            sleep_millis(super::OS_SERVICE_POLL_INTERVAL);
         }
         if !desktop.is_headless() {
             sid = desktop.sid.clone();

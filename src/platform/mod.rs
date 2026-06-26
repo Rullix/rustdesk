@@ -37,6 +37,21 @@ use std::sync::{Arc, Mutex};
 #[cfg(not(any(target_os = "macos", target_os = "android", target_os = "ios")))]
 pub const SERVICE_INTERVAL: u64 = 300;
 
+/// Polling interval for the OS service main loop (`start_os_service`).
+///
+/// This loop detects login/logout, X11<->Wayland switches, headless state
+/// changes, and unexpected exits of the `--server` subprocess. A larger value
+/// reduces the rate of `ps`/`pgrep`/`sh` process spawns (the main source of
+/// background process churn on Linux) at the cost of slower (second-level)
+/// reaction to session changes. 2s is an acceptable trade-off for typical
+/// unattended/remote-control usage.
+///
+/// Note: `SERVICE_INTERVAL` (300ms) is intentionally kept unchanged because it
+/// is also used by fixed-iteration exit waits (`stop_children`), where scaling
+/// it up would proportionally lengthen shutdown latency.
+#[cfg(not(any(target_os = "macos", target_os = "android", target_os = "ios")))]
+pub const OS_SERVICE_POLL_INTERVAL: u64 = 2_000;
+
 lazy_static::lazy_static! {
     static ref INSTALLING_SERVICE: Arc<Mutex<bool>>= Default::default();
 }
