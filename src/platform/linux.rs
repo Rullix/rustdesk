@@ -213,6 +213,14 @@ fn sleep_millis(millis: u64) {
     std::thread::sleep(Duration::from_millis(millis));
 }
 
+#[inline]
+fn stable_session_sleep_millis() -> u64 {
+    std::env::var("RUSTDESK_LINUX_STABLE_SESSION_INTERVAL")
+        .ok()
+        .and_then(|v| v.parse::<u64>().ok())
+        .unwrap_or(500)
+}
+
 pub fn get_cursor_pos() -> Option<(i32, i32)> {
     let mut res = None;
     XDO.with(|xdo| {
@@ -872,7 +880,7 @@ pub fn start_os_service() {
         let keeps_session = sid == desktop.sid;
         if keeps_headless || keeps_session {
             // for fixing https://github.com/rustdesk/rustdesk/issues/3129 to avoid too much dbus calling,
-            sleep_millis(500);
+            sleep_millis(stable_session_sleep_millis());
         } else {
             sleep_millis(super::SERVICE_INTERVAL);
         }
